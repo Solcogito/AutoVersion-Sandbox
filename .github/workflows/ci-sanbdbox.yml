@@ -1,0 +1,83 @@
+# ============================================================================
+# File:        .github/workflows/ci-sandbox.yml
+# Project:     AutoVersion Sandbox
+# Author:      Benoit Desrosiers (Solcogito S.E.N.C.)
+# ----------------------------------------------------------------------------
+# Description:
+#   Lightweight CI workflow to test AutoVersion CLI functionality.
+#   - Runs AutoVersion CLI from the Builds folder (or system install)
+#   - Performs version bump, changelog update, and Git tagging
+#   - Safe for experimentation; no production artifacts or releases
+# ============================================================================
+
+name: 🧪 AutoVersion Sandbox CI
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # allows manual trigger from Actions tab
+
+jobs:
+  sandbox:
+    runs-on: windows-latest
+
+    steps:
+      # ---------------------------------------------------------------
+      # 1. Checkout full history (needed for changelog + tags)
+      # ---------------------------------------------------------------
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ---------------------------------------------------------------
+      # 2. Setup .NET 8 runtime (so AutoVersion CLI can run)
+      # ---------------------------------------------------------------
+      - name: 🧱 Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # ---------------------------------------------------------------
+      # 3. Display current version
+      # ---------------------------------------------------------------
+      - name: 🔢 Show current version
+        run: |
+          echo "Current version:"
+          cat version.txt
+        shell: pwsh
+
+      # ---------------------------------------------------------------
+      # 4. Run AutoVersion bump (patch)
+      # ---------------------------------------------------------------
+      - name: 🚀 Run AutoVersion bump patch
+        run: |
+          # Run locally-built CLI if present, otherwise use installed version
+          if (Test-Path ".\Builds\autoversion.exe") {
+            .\Builds\autoversion.exe bump patch
+          } else {
+            autoversion bump patch
+          }
+        shell: pwsh
+
+      # ---------------------------------------------------------------
+      # 5. Commit + tag updated files
+      # ---------------------------------------------------------------
+      - name: 🏷️ Commit & push version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "test(release): automated sandbox version bump"
+          git push
+          git push --tags
+        shell: pwsh
+
+      # ---------------------------------------------------------------
+      # 6. Upload artifacts (optional)
+      # ---------------------------------------------------------------
+      - name: 📤 Upload renamed artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sandbox-artifacts
+          path: Builds/
