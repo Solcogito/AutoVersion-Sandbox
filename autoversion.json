@@ -1,0 +1,47 @@
+{
+  "$schema": "./_Infrastructure/autoversion.schema.json",
+  "versionFile": "version.txt",
+
+  "files": [
+    {
+      "path": "version.txt",
+      "type": "text",
+      "token": "__VERSION__",
+      "encoding": "utf-8"
+    },
+    {
+      "path": "README.md",
+      "type": "text",
+      "token": "__VERSION__",
+      "encoding": "utf-8"
+    }
+  ],
+
+  "artifacts": [
+    {
+      "path": "Builds/fake-build.txt",
+      "rename": "Builds/fake-build_{version}.txt",
+      "overwrite": true
+    }
+  ],
+
+  "git": {
+    "tagPrefix": "test-v",
+    "push": true,
+    "allowDirty": false,
+    "commitMessage": "test(release): bump version to {version}"
+  },
+
+  "changelog": {
+    "path": "CHANGELOG.md",
+    "template": "## [{version}] - {date}\n### Sandbox\n- Test release\n"
+  },
+
+  "logging": {
+    "verbose": true,
+    "color": true,
+    "level": "info"
+  },
+
+  "dryRun": false
+}
